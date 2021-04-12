@@ -74,12 +74,20 @@ let s:updateColors = fnamemodify(resolve(expand('<sfile>:p')), ':h') . '/mode_co
 function! ResetProfile()
 	python3 << EOF
 try:
-	from polychromatic.preferences import get_device_state
-	from polychromatic import preferences
-	from polychromatic.common import set_lighting_effect
-	effect = get_device_state(serial,"main","effect")
-	params = get_device_state(serial,"main","effect_params")
-	set_lighting_effect(preferences, keyboard, "main", effect, params)
+	from dbus.exceptions import DBusException
+	from openrazer.client import DeviceManager
+	from openrazer.client import DaemonNotFound
+
+	device_manager = DeviceManager()
+	keyboard = None
+
+	# get the keyboard
+	for device in device_manager.devices:
+		if (device.type == "keyboard"):
+			keyboard = device
+
+	if keyboard:
+		keyboard.fx.advanced.restore()
 except ImportError:
 	#print("vim-razer: polychromatic not installed")
 	pass
